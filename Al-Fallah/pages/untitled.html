@@ -1,0 +1,62 @@
+ <?php
+// Function to authenticate student login
+function authenticate_student($username, $password, $class) {
+    // Your authentication logic here, e.g., querying a database
+    // Return true if authentication succeeds, false otherwise
+}
+
+// Function to fetch questions from the database
+function fetch_questions($page) {
+    // Your logic to fetch questions with pagination from the database
+}
+
+// Function to calculate time remaining
+function time_remaining($end_time) {
+    $current_time = time();
+    return $end_time - $current_time;
+}
+
+// Function to display questions and options
+function display_questions($questions) {
+    // Your logic to display questions and options here
+}
+
+// Function to mark the test and calculate the result
+function mark_test($answers) {
+    // Your logic to mark the test and calculate the result
+}
+
+// Student login
+$username = $_POST['username'];
+$password = $_POST['password'];
+$class = $_POST['class'];
+
+if (authenticate_student($username, $password, $class)) {
+    // Start the timer
+    $end_time = time() + 3600; // 1 hour timer
+    // Loop through pages and display questions
+    for ($page = 1; $page <= 10; $page++) {
+        $questions = fetch_questions($page);
+        display_questions($questions);
+        // Check time remaining
+        $time_remaining = time_remaining($end_time);
+        if ($time_remaining <= 0) {
+            echo "Time's up! Please submit your test.";
+            break;
+        }
+    }
+    // Submit or prompt to submit test
+    if ($time_remaining > 0) {
+        echo "You finished the test before the time ran out. Submit your test.";
+    }
+    // Mark the test
+    $answers = $_POST['answers']; // Assuming answers are submitted via POST
+    $result = mark_test($answers);
+    // Display result
+    echo "Your result: ";
+    print_r($result); // Output result
+    // Your logic to print or send result via email
+} else {
+    echo "Invalid credentials. Please try again.";
+}
+?>

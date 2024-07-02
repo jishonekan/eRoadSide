@@ -1,0 +1,78 @@
+<?php
+
+include('connect.php');
+session_start();
+
+// Verify if session is set for username
+if (isset($_SESSION['username'])) {
+    $username = $_SESSION['username'];
+}
+
+// Check if form data is submitted
+if (isset($_POST['username']) && isset($_POST['password']) && isset($_POST['class'])) {
+    // Retrieve form inputs
+    $username = trim($_POST['username']);
+    $password = trim($_POST['password']);
+    $class = trim($_POST['class']);
+    
+    // Check if any of the inputs are empty
+    if (empty($username) || empty($password) || empty($class)) {
+        echo "<h2>Please provide all the required details (username, password, and class).</h2>";
+        exit();
+    }
+
+    // Authenticate user with provided username, password, and class
+    $sql_user = "SELECT class FROM student WHERE username = ? AND password = ? AND class = ?";
+    $stmt_user = $conn->prepare($sql_user);
+    $stmt_user->bind_param("sss", $username, $password, $class);
+    $stmt_user->execute();
+    $result_user = $stmt_user->get_result();
+
+    // Check if a user with matching username, password, and class exists
+    if ($result_user->num_rows > 0) {
+        echo "<h3>Welcome, $username </h3>";
+        echo "<h4>Attempt all questions</h4>";
+
+        // Retrieve questions based on the user's class
+        $sql_questions = "SELECT question, option_a, option_b, option_c, option_d FROM questions WHERE class = ? ORDER BY RAND() LIMIT 10";
+        $stmt_questions = $conn->prepare($sql_questions);
+        $stmt_questions->bind_param("s", $class);
+        $stmt_questions->execute();
+        $result_questions = $stmt_questions->get_result();
+
+        // Display the questions
+        $question_number = 1;
+        while ($row = $result_questions->fetch_assoc()) {
+            $question = $row['question'];
+            $option_A = $row['option_a'];
+            $option_B = $row['option_b'];
+            $option_C = $row['option_c'];
+            $option_D = $row['option_d'];
+            
+            echo "<h3>$question_number. $question</h3>";
+            echo "<input type='radio' id='option_a' name='answer_$question_number' value='option_a'>";
+            echo "<label for='option_a'>$option_A</label>";
+            echo "<input type='radio' id='option_b' name='answer_$question_number' value='option_b'>";
+            echo "<label for='option_b'>$option_B</label>";
+            echo "<input type='radio' id='option_c' name='answer_$question_number' value='option_c'>";
+            echo "<label for='option_c'>$option_C</label>";
+            echo "<input type='radio' id='option_d' name='answer_$question_number' value='option_d'>";
+            echo "<label for='option_d'>$option_D</label>";
+            
+            $question_number++;
+        }
+    } else {
+        echo "<h2>Invalid username, password, or class provided. Please try again.</h2>";
+    }
+} else {
+    // Redirect to take-test.html if the form is not submitted
+    header("Location: take-test.html");
+    exit();
+}
+
+// Always close the connection and prepared statements
+$stmt_user->close();
+$stmt_questions->close();
+$conn->close();
+
+?>

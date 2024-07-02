@@ -1,0 +1,147 @@
+<?php
+session_start();
+
+// Database connection
+$servername = "localhost";
+$username = "username";
+$password = "password";
+$dbname = "cbt_system";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// User authentication
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
+    $username = $_POST['username'];
+    $password = $_POST['password'];
+
+    $sql = "SELECT * FROM users WHERE username='$username' AND password='$password'";
+    $result = $conn->query($sql);
+
+    if ($result->num_rows == 1) {
+        $_SESSION['username'] = $username;
+        header("Location: dashboard.php");
+    } else {
+        echo "Invalid username or password.";
+    }
+}
+
+// Create a new question
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['create_question'])) {
+    $question = $_POST['question'];
+    $option1 = $_POST['option1'];
+    $option2 = $_POST['option2'];
+    $option3 = $_POST['option3'];
+    $option4 = $_POST['option4'];
+    $correct_answer = $_POST['correct_answer'];
+
+    $sql = "INSERT INTO questions (question, option1, option2, option3, option4, correct_answer) 
+            VALUES ('$question', '$option1', '$option2', '$option3', '$option4', '$correct_answer')";
+
+    if ($conn->query($sql) === TRUE) {
+        echo "Question created successfully";
+    } else {
+        echo "Error: " . $sql . "<br>" . $conn->error;
+    }
+}
+
+// Update a question
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_question'])) {
+    $question_id = $_POST['question_id'];
+    $question = $_POST['question'];
+    $option1 = $_POST['option1'];
+    $option2 = $_POST['option2'];
+    $option3 = $_POST['option3'];
+    $option4 = $_POST['option4'];
+    $correct_answer = $_POST['correct_answer'];
+
+    $sql = "UPDATE questions SET question='$question', option1='$option1', option2='$option2', 
+            option3='$option3', option4='$option4', correct_answer='$correct_answer' WHERE id='$question_id'";
+
+    if ($conn->query($sql) === TRUE) {
+        echo "Question updated successfully";
+    } else {
+        echo "Error updating question: " . $conn->error;
+    }
+}
+
+// Delete a question
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_question'])) {
+    $question_id = $_POST['question_id'];
+
+    $sql = "DELETE FROM questions WHERE id='$question_id'";
+
+    if ($conn->query($sql) === TRUE) {
+        echo "Question deleted successfully";
+    } else {
+        echo "Error deleting question: " . $conn->error;
+    }
+}
+
+// Fetch a random question
+$sql = "SELECT * FROM questions ORDER BY RAND() LIMIT 1";
+$result = $conn->query($sql);
+
+if ($result->num_rows == 1) {
+    $row = $result->fetch_assoc();
+    $question = $row["question"];
+    $option1 = $row["option1"];
+    $option2 = $row["option2"];
+    $option3 = $row["option3"];
+    $option4 = $row["option4"];
+    $correct_answer = $row["correct_answer"];
+} else {
+    echo "No questions found in the database.";
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computer Based Test</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <?php if (!isset($_SESSION['username'])): ?>
+            <h2>Login</h2>
+            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+                <button type="submit" name="login">Login</button>
+            </form>
+        <?php else: ?>
+            <h2>Question</h2>
+            <form action="submit_answer.php" method="post">
+                <h3><?php echo $question; ?></h3>
+                <input type="radio" id="option1" name="answer" value="option1">
+                <label for="option1"><?php echo $option1; ?></label><br>
+                <input type="radio" id="option2" name="answer" value="option2">
+                <label for="option2"><?php echo $option2; ?></label><br>
+                <input type="radio" id="option3" name="answer" value="option3">
+                <label for="option3"><?php echo $option3; ?></label><br>
+                <input type="radio" id="option4" name="answer" value="option4">
+                <label for="option4"><?php echo $option4; ?></label><br>
+                <input type="submit" value="Submit Answer">
+            </form>
+        <?php endif; ?>
+    </div>
+</body>
+</html><!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Untitled Document</title>
+</head>
+
+<body>
+</body>
+</html>

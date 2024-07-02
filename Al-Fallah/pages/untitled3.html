@@ -1,0 +1,90 @@
+As a renowned software developer, I would aim for a clean and efficient design while implementing the functionality to fetch questions from a database and display them using PHP. Here's a suggestion for how you might structure the code across multiple pages:
+
+Database Connection File (db_connection.php):
+This file will handle the connection to the database. It should be included at the beginning of any PHP script that needs to interact with the database.
+
+php
+Copy code
+<?php
+// Database connection parameters
+$host = "localhost";
+$dbname = "your_database";
+$username = "your_username";
+$password = "your_password";
+
+// Attempt database connection
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
+    // Set PDO error mode to exception
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("Connection failed: " . $e->getMessage());
+}
+?>
+Test Page (test.php):
+This page will fetch questions from the database and display them.
+
+php
+Copy code
+<?php
+// Include the database connection file
+require_once 'db_connection.php';
+
+// Fetch questions from the database
+
+$stmt = $pdo->query("SELECT * FROM questions ORDER BY RAND() LIMIT 10");
+$questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Page</title>
+</head>
+<body>
+    <h1>CBT Test</h1>
+    <form method="post" action="submit.php">
+        <?php foreach ($questions as $question): ?>
+            <p><?php echo $question['question']; ?></p>
+            <!-- Display answer options here -->
+        <?php endforeach; ?>
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
+Submission and Scoring Page (submit.php):
+This page will handle the submission of answers and calculate the score.
+
+php
+Copy code
+<?php
+// Include the database connection file
+require_once 'db_connection.php';
+
+// Process submitted answers and calculate score
+// Code to calculate score...
+
+// Redirect to result page with score
+header("Location: result.php?score=$score");
+exit();
+?>
+Result Page (result.php):
+This page will display the user's score.
+
+php
+Copy code
+<?php
+// Retrieve score from URL parameter
+$score = $_GET['score'];
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Result Page</title>
+</head>
+<body>
+    <h1>CBT Test Result</h1>
+    <p>Your score: <?php echo $score; ?></p>
+</body>
+</html>
